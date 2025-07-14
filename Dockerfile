@@ -1,0 +1,52 @@
+# Import the base image
+FROM rust:1.85-slim AS builder
+
+# Install build dependencies
+RUN apt-get update && \
+    apt-get install -y \
+        git \
+        pkg-config \
+        libssl-dev \
+        ca-certificates \
+        && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create app directory
+WORKDIR /app
+
+# Clone the repository
+RUN git clone https://github.com/thebyteslayer/sodium.git .
+
+# Build sodium-server
+RUN cargo build --release --bin sodium-server
+
+# Set runtime image
+FROM debian:12-slim
+
+# Install runtime dependencies
+RUN apt-get update && \
+    apt-get install -y \
+        ca-certificates \
+        && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN groupadd -r sodium && useradd -r -g sodium sodium
+
+# Create app directory
+WORKDIR /app
+
+# Copy the binary from builder stage
+COPY --from=builder /app/target/release/sodium-server /usr/local/bin/sodium-server
+
+# Change ownership to sodium user
+RUN chown -R sodium:sodium /app
+
+# Switch to non-root user
+USER sodium
+
+# Expose the default port
+EXPOSE 1123
+
+# Run sodium-server
+ENTRYPOINT ["/usr/local/bin/sodium-server"] 
