@@ -1,0 +1,4 @@
+bind-ip = "0.0.0.0"
+bind-port = 1825
+cluster_enabled = false
+whisper_timeout = 1
