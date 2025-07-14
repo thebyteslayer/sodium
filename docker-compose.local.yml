@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  sodium:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: sodium-server-local
+    ports:
+      - "1123:1123"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c 'echo > /dev/tcp/localhost/1123' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - sodium_data_local:/app
+    networks:
+      - sodium_network_local
+
+volumes:
+  sodium_data_local:
+    driver: local
+
+networks:
+  sodium_network_local:
+    driver: bridge 

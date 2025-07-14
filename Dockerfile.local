@@ -4,7 +4,6 @@ FROM rust:slim AS builder
 # Install build dependencies
 RUN apt-get update && \
     apt-get install -y \
-        git \
         pkg-config \
         libssl-dev \
         ca-certificates \
@@ -14,8 +13,8 @@ RUN apt-get update && \
 # Create app directory
 WORKDIR /app
 
-# Clone the repository
-RUN git clone https://github.com/thebyteslayer/sodium.git .
+# Copy source code
+COPY . .
 
 # Build sodium-server
 RUN cargo build --release --bin sodium-server

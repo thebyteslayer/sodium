@@ -1,0 +1,11 @@
+target/
+.git/
+.gitignore
+README.md
+Dockerfile
+Dockerfile.local
+docker-compose.yml
+docker-compose.local.yml
+.dockerignore
+sodium.toml
+cluster.json 
