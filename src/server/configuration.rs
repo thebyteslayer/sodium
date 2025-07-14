@@ -35,7 +35,7 @@ impl Default for SodiumConfig {
     fn default() -> Self {
         Self {
             bind_ip: "0.0.0.0".to_string(),
-            bind_port: 1825,
+            bind_port: 1123,
             cluster_enabled: false,
             whisper_timeout: 1,
         }
