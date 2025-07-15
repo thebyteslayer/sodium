@@ -1,11 +1,10 @@
-version: '3.8'
-
 services:
-  sodium:
+  sodium-server-dev:
     build:
       context: .
       dockerfile: Dockerfile.local
-    container_name: sodium-server-local
+    image: sodium-server-dev
+    container_name: sodium-server-dev
     ports:
       - "1123:1123"
     restart: unless-stopped

@@ -1,10 +1,9 @@
-version: '3.8'
-
 services:
-  sodium:
+  sodium-server:
     build:
       context: .
       dockerfile: Dockerfile
+    image: sodium-server
     container_name: sodium-server
     ports:
       - "1123:1123"
