@@ -16,25 +16,34 @@ use tracing_subscriber;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt()
-        .with_target(false)
-        .with_thread_ids(true)
-        .with_level(true)
-        .init();
+    let config = SodiumConfig::load_or_create()?;
+    
+    if !config.silent {
+        tracing_subscriber::fmt()
+            .with_target(false)
+            .with_thread_ids(true)
+            .with_level(true)
+            .init();
+    }
 
     threading::initialize_threading();
     core::initialize_cache();
     
-    let config = SodiumConfig::load_or_create()?;
     let bind_addr = config.bind_address();
     
     let server = TcpApiServer::new(&bind_addr).await?;
     
-    info!("Sodium running on {}", server.local_addr()?);
+    if !config.silent {
+        info!("Sodium running on {}", server.local_addr()?);
+        info!("Sodium listening on {}", config.public_bind_address());
+    }
+    
     tokio::select! {
         result = server.run() => {
             if let Err(e) = result {
-                error!("Error accepting TCP connection: {}", e);
+                if !config.silent {
+                    error!("Error accepting TCP connection: {}", e);
+                }
             }
         }
         _ = tokio::signal::ctrl_c() => {

@@ -27,6 +27,11 @@ pub struct SodiumConfig {
     pub bind_ip: String,
     #[serde(rename = "bind-port")]
     pub bind_port: u16,
+    #[serde(rename = "bind-public-ip")]
+    pub bind_public_ip: String,
+    #[serde(rename = "bind-public-port")]
+    pub bind_public_port: u16,
+    pub silent: bool,
     pub cluster_enabled: bool,
     pub whisper_timeout: u32,
 }
@@ -36,6 +41,9 @@ impl Default for SodiumConfig {
         Self {
             bind_ip: "0.0.0.0".to_string(),
             bind_port: 1123,
+            bind_public_ip: "0.0.0.0".to_string(),
+            bind_public_port: 1123,
+            silent: false,
             cluster_enabled: false,
             whisper_timeout: 1,
         }
@@ -45,6 +53,10 @@ impl Default for SodiumConfig {
 impl SodiumConfig {
     pub fn bind_address(&self) -> String {
         format!("{}:{}", self.bind_ip, self.bind_port)
+    }
+
+    pub fn public_bind_address(&self) -> String {
+        format!("{}:{}", self.bind_public_ip, self.bind_public_port)
     }
 
     pub fn load_or_create() -> ConfigResult<Self> {
@@ -68,7 +80,7 @@ impl SodiumConfig {
     fn load_and_heal(path: &str) -> ConfigResult<Self> {
         let content = fs::read_to_string(path)?;
         
-                    match toml::from_str::<SodiumConfig>(&content) {
+        match toml::from_str::<SodiumConfig>(&content) {
             Ok(config) => {
                 let healed_config = Self::heal_config(config);
                 healed_config.save_to_file(path)?;
@@ -94,6 +106,15 @@ impl SodiumConfig {
             }
             if let Some(toml::Value::Integer(port)) = table.get("bind-port") {
                 config.bind_port = *port as u16;
+            }
+            if let Some(toml::Value::String(public_ip)) = table.get("bind-public-ip") {
+                config.bind_public_ip = public_ip.clone();
+            }
+            if let Some(toml::Value::Integer(public_port)) = table.get("bind-public-port") {
+                config.bind_public_port = *public_port as u16;
+            }
+            if let Some(toml::Value::Boolean(silent)) = table.get("silent") {
+                config.silent = *silent;
             }
             if let Some(toml::Value::Boolean(enabled)) = table.get("cluster_enabled") {
                 config.cluster_enabled = *enabled;
