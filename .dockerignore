@@ -1,6 +1,7 @@
 target/
 .git/
 .gitignore
+sodium-cli/
 README.md
 Dockerfile
 Dockerfile.local

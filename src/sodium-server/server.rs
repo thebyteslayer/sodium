@@ -2,10 +2,10 @@
 // A scalable and optimized Key Value Caching System, written in Rust.
 
 mod api;
-mod cache;
+mod core;
 mod cluster;
 mod configuration;
-mod node_id;
+mod search;
 mod threading;
 
 use api::TcpApiServer;
@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     threading::initialize_threading();
-    cache::initialize_cache();
+    core::initialize_cache();
     
     let config = SodiumConfig::load_or_create()?;
     let bind_addr = config.bind_address();

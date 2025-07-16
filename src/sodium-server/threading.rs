@@ -27,6 +27,12 @@ pub enum Task {
     CacheKeys {
         sender: oneshot::Sender<TaskResult<Vec<String>>>,
     },
+
+    CacheSearchMultiple {
+        search_type: crate::search::SearchType,
+        queries: Vec<String>,
+        sender: oneshot::Sender<TaskResult<Vec<String>>>,
+    },
 }
 
 struct WorkQueue {
@@ -163,19 +169,24 @@ impl ThreadPool {
     fn execute_task(task: Task) {
         match task {
             Task::CacheGet { key, sender } => {
-                let result = crate::cache::execute_get(&key);
+                let result = crate::core::execute_get(&key);
                 let _ = sender.send(result);
             }
             Task::CacheSet { key, value, sender } => {
-                let result = crate::cache::execute_set(key, value);
+                let result = crate::core::execute_set(key, value);
                 let _ = sender.send(result);
             }
             Task::CacheDelete { key, sender } => {
-                let result = crate::cache::execute_delete(&key);
+                let result = crate::core::execute_delete(&key);
                 let _ = sender.send(result);
             }
             Task::CacheKeys { sender } => {
-                let result = crate::cache::execute_keys();
+                let result = crate::core::execute_keys();
+                let _ = sender.send(result);
+            }
+
+            Task::CacheSearchMultiple { search_type, queries, sender } => {
+                let result = crate::search::execute_search_multiple(search_type, queries);
                 let _ = sender.send(result);
             }
         }
@@ -246,6 +257,19 @@ pub async fn execute_cache_delete(key: String) -> TaskResult<bool> {
 pub async fn execute_cache_keys() -> TaskResult<Vec<String>> {
     let (sender, receiver) = oneshot::channel();
     let task = Task::CacheKeys { sender };
+    
+    if get_thread_pool().execute(task) {
+        receiver.await.unwrap_or_else(|_| Err("Task execution failed".into()))
+    } else {
+        Err("Failed to queue task".into())
+    }
+}
+
+
+
+pub async fn execute_cache_search_multiple(search_type: crate::search::SearchType, queries: Vec<String>) -> TaskResult<Vec<String>> {
+    let (sender, receiver) = oneshot::channel();
+    let task = Task::CacheSearchMultiple { search_type, queries, sender };
     
     if get_thread_pool().execute(task) {
         receiver.await.unwrap_or_else(|_| Err("Task execution failed".into()))

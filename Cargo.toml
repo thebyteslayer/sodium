@@ -1,15 +1,15 @@
 [package]
 name = "sodium"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2024"
 
 [[bin]]
 name = "sodium-server"
-path = "src/server/server.rs"
+path = "src/sodium-server/server.rs"
 
 [[bin]]
 name = "sodium-cli"
-path = "src/cli/cli.rs"
+path = "src/sodium-cli/cli.rs"
 
 [dependencies]
 tokio = { version = "1.40", features = ["full"] }

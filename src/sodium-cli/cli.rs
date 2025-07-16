@@ -1,10 +1,44 @@
 // Copyright (c) 2025, TheByteSlayer, Sodium
 // A scalable and optimized Key Value Caching System, written in Rust.
 
-use std::io::{Write, BufRead, BufReader};
+use std::io::{self, Write, BufRead, BufReader};
 use std::net::TcpStream;
 
-pub fn execute_command(address: &str, command: &str) {
+fn main() {
+    let stdin = io::stdin();
+    loop {
+        print!("sodium-cli> ");
+        io::stdout().flush().unwrap();
+        
+        let mut input = String::new();
+        match stdin.lock().read_line(&mut input) {
+            Ok(_) => {
+                let input = input.trim();
+                if input.is_empty() {
+                    continue;
+                }
+                
+                // Parse address and command
+                let parts: Vec<&str> = input.splitn(2, ' ').collect();
+                if parts.len() < 2 {
+                    println!("Error: Usage: <address> <command>");
+                    continue;
+                }
+                
+                let address = parts[0];
+                let command = parts[1];
+                
+                execute_command(address, command);
+            }
+            Err(e) => {
+                eprintln!("Error reading input: {}", e);
+                break;
+            }
+        }
+    }
+}
+
+fn execute_command(address: &str, command: &str) {
     match TcpStream::connect(address) {
         Ok(mut stream) => {
             if let Err(e) = stream.write_all(command.as_bytes()) {

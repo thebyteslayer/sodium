@@ -4,9 +4,22 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use crate::configuration::{ConfigError, SodiumConfig};
-use crate::node_id;
+use rand::Rng;
 
 type ConfigResult<T> = Result<T, ConfigError>;
+
+const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
+const NODE_ID_LENGTH: usize = 7;
+
+fn generate_node_id() -> String {
+    let mut rng = rand::thread_rng();
+    (0..NODE_ID_LENGTH)
+        .map(|_| {
+            let idx = rng.gen_range(0..CHARSET.len());
+            CHARSET[idx] as char
+        })
+        .collect()
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClusterNode {
@@ -24,7 +37,7 @@ pub struct ClusterConfig {
 
 pub fn generate_cluster_file(config: &SodiumConfig) -> ConfigResult<()> {
     let cluster_node = ClusterNode {
-        node_id: node_id::generate_node_id(),
+        node_id: generate_node_id(),
         node_validation: 0,
         address: config.bind_address(),
         slots: [0, 16383],
